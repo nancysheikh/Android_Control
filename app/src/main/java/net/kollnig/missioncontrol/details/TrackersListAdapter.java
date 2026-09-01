@@ -1,20 +1,3 @@
-/*
- * TrackerControl is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * TrackerControl is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with TrackerControl. If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright © 2019–2020 Konrad Kollnig (University of Oxford)
- */
-
 package net.kollnig.missioncontrol.details;
 
 import static net.kollnig.missioncontrol.data.TrackerList.TRACKER_HOSTLIST;
@@ -72,12 +55,10 @@ import eu.faircode.netguard.Rule;
 import eu.faircode.netguard.ServiceSinkhole;
 import eu.faircode.netguard.Util;
 
-/**
- * {@link RecyclerView.Adapter} that can display a {@link TrackerCategory}.
- */
 public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_ITEM = 1;
+    public static final String PREF_BLOCK_ALL_ADS = "block_all_ads";
 
     private final String TAG = TrackersListAdapter.class.getSimpleName();
     private final Integer mAppUid;
@@ -85,9 +66,9 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private final Context mContext;
     private final SharedPreferences apply;
     private final SharedPreferences tracker_protect;
+    private final SharedPreferences ad_block_prefs;
     private List<TrackerCategory> mValues = new ArrayList<>();
 
-    // Analysis UI elements (populated when header is created)
     private TextView mBtnAnalyze;
     private TextView mTvDetectedTrackers;
     private TextView mTvDisclaimer;
@@ -95,21 +76,20 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private TextView mTvAnalysisProgress;
     private ProgressBar mPbTrackerDetection;
 
-    // At most one of the app-controls bottom sheets is open at a time.
     private BottomSheetDialog mOpenSheet;
 
     public TrackersListAdapter(Context c,
-            RecyclerView v,
-            Integer appUid,
-            String appId) {
+                               RecyclerView v,
+                               Integer appUid,
+                               String appId) {
         mContext = c;
         mAppUid = appUid;
         mAppId = appId;
 
         apply = mContext.getSharedPreferences("apply", Context.MODE_PRIVATE);
         tracker_protect = mContext.getSharedPreferences("tracker_protect", Context.MODE_PRIVATE);
+        ad_block_prefs = mContext.getSharedPreferences(PREF_BLOCK_ALL_ADS, Context.MODE_PRIVATE);
 
-        // Removes blinks
         ((SimpleItemAnimator) Objects.requireNonNull(v.getItemAnimator())).setSupportsChangeAnimations(false);
     }
 
@@ -129,30 +109,20 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.list_item_trackers_header, parent, false);
 
-            // Show warning for browser apps
             Intent urlIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.wikipedia.org/"));
             urlIntent.setPackage(mAppId);
             if (Common.isCallable(mContext, urlIntent)
                     && !Util.isPlayStoreInstall())
                 view.findViewById(R.id.cardNotSupported).setVisibility(View.VISIBLE);
 
-            // Setup button for on-demand tracker analysis
             setupTrackerAnalysisButton(view);
 
             return new VHHeader(view);
         }
 
-        throw new RuntimeException(
-                "there is no type that matches the type " + viewType + " + make sure your using types correctly");
+        throw new RuntimeException("there is no type that matches the type " + viewType);
     }
 
-    /**
-     * Setup button for on-demand tracker library analysis.
-     * The Fragment is responsible for observing WorkManager and calling update
-     * methods.
-     *
-     * @param view The tracker view to add the button handler to
-     */
     private void setupTrackerAnalysisButton(View view) {
         mBtnAnalyze = view.findViewById(R.id.btnAnalyzeTrackers);
         mTvDetectedTrackers = view.findViewById(R.id.tvDetectedTrackers);
@@ -163,7 +133,6 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         TrackerAnalysisManager manager = TrackerAnalysisManager.getInstance(mContext);
 
-        // Show cached results initially
         String cachedResults = manager.getCachedResult(mAppId);
         if (cachedResults != null) {
             String res = String.format(mContext.getString(R.string.detected_trackers), cachedResults);
@@ -178,19 +147,15 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         mBtnAnalyze.setOnClickListener(v -> {
             manager.startAnalysis(mAppId);
-            // Fragment's observer will pick up the work state changes
         });
 
         if (manager.shouldStartAnalysis(mAppId))
             manager.startAnalysis(mAppId);
     }
 
-    /**
-     * Called by Fragment when analysis state changes.
-     */
     public void updateAnalysisState(WorkInfo workInfo) {
         if (mBtnAnalyze == null)
-            return; // Header not yet created
+            return;
 
         if (workInfo == null) {
             mLayoutProgress.setVisibility(View.GONE);
@@ -267,15 +232,12 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             boolean allowGranularControl = !BlockingMode.isMinimalMode(mContext);
             holder.mBlockingTip.setVisibility(allowGranularControl ? View.VISIBLE : View.GONE);
 
-            // Load data
             final TrackerBlocklist b = TrackerBlocklist.getInstance(mContext);
             final TrackerCategory trackerCategory = getItem(position);
             final String trackerCategoryName = trackerCategory.getCategoryName();
 
-            // Display uncertainty
             holder.mUncertain.setVisibility(trackerCategory.isUncertain() ? View.VISIBLE : View.GONE);
 
-            // Add data to view
             String categoryDisplayName = trackerCategory.getDisplayName(mContext);
             holder.mTrackerCategoryName.setText(categoryDisplayName);
             holder.mSwitchTracker.setContentDescription(
@@ -285,7 +247,7 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     R.layout.list_item_trackers_details, trackerCategory.getChildren()) {
                 @Override
                 public @NonNull View getView(int pos, @Nullable View convertView,
-                        @NonNull ViewGroup parent) {
+                                             @NonNull ViewGroup parent) {
                     TextView tv = (TextView) super.getView(pos, convertView, parent);
                     Tracker t = getItem(pos);
                     if (t != null)
@@ -304,13 +266,6 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     return t == null || !isAmbiguousDeadToggle(t);
                 }
 
-                /**
-                 * Ambiguous shared-IP trackers are always allowed at runtime outside
-                 * Strict mode (see BlockingModeLogic#blocksAmbiguousTrackerIp), no
-                 * matter their configured blocked state. Tapping such a row would
-                 * silently toggle hidden state with no runtime effect, so it must be
-                 * treated as non-interactive rather than shown as a dead toggle.
-                 */
                 private boolean isAmbiguousDeadToggle(Tracker t) {
                     return trackerProtectionEnabled
                             && !BlockingMode.isMinimalMode(getContext())
@@ -349,8 +304,6 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         companyBlocked = categoryBlocked && b.blocked(mAppUid,
                                 TrackerBlocklist.getBlockingKey(t));
 
-                        // In standard mode, ambiguous trackers are allowed at runtime
-                        // even if configured as blocked — reflect that in the UI
                         if (companyBlocked
                                 && !BlockingMode.isStrictMode(getContext())
                                 && t.isAllowedInStandardMode()) {
@@ -384,15 +337,12 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
                     tv.setText(spannable, TextView.BufferType.SPANNABLE);
-                    // Grey out ambiguous shared-IP rows: they are non-interactive
-                    // (see isEnabled above), so the toggle isn't a dead click.
                     tv.setEnabled(!uncertainAllowed);
                 }
             };
             holder.mCompaniesList.setAdapter(trackersAdapter);
 
             if (BlockingMode.isMinimalMode(mContext)) {
-                // Minimal mode: show read-only blocking status (no granular control)
                 holder.mSwitchTracker.setVisibility(View.VISIBLE);
                 holder.mSwitchTracker.setEnabled(false);
                 holder.mSwitchTracker.setChecked(trackerProtectionEnabled &&
@@ -406,7 +356,7 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         b.blocked(mAppUid, trackerCategoryName));
                 holder.mSwitchTracker.setOnCheckedChangeListener((buttonView, hasBecomeChecked) -> {
                     if (!buttonView.isPressed())
-                        return; // to fix errors
+                        return;
 
                     if (hasBecomeChecked)
                         b.block(mAppUid, trackerCategoryName);
@@ -426,10 +376,6 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         if (t == null)
                             return;
 
-                        // Ambiguous shared-IP trackers are always allowed at runtime
-                        // outside Strict mode. The row is marked non-interactive via
-                        // the adapter's isEnabled(), but guard here too in case a
-                        // click still reaches us, instead of silently doing nothing.
                         if (!BlockingMode.isStrictMode(mContext) && t.isAllowedInStandardMode()) {
                             Toast.makeText(mContext, R.string.allowed_shared_ip, Toast.LENGTH_SHORT).show();
                             return;
@@ -452,25 +398,27 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 else
                     holder.mCompaniesList.setOnItemClickListener(null);
             }
-
-            // cast holder to VHItem and set data
         } else if (_holder instanceof VHHeader) {
             VHHeader holder = (VHHeader) _holder;
 
             holder.mLibraryExplanation.setText(R.string.trackers_static_explanation);
 
-            holder.mAppStateValue.setText(stateLabelRes(currentState(w)));
+            if (isBlockAllAdsActive()) {
+                holder.mAppStateValue.setText("Block All Ads (Ad Blocker)");
+            } else {
+                holder.mAppStateValue.setText(stateLabelRes(currentState(w)));
+            }
+
             holder.mRowAppState.setOnClickListener(v -> showProtectionSheet(w));
 
             bindRemoteRouting(holder);
         }
     }
 
-    /**
-     * The remote-routing control, which is deliberately independent of the
-     * protection state above: whether an app is filtered and whether it is
-     * forwarded through the remote VPN are separate choices (#723).
-     */
+    private boolean isBlockAllAdsActive() {
+        return ad_block_prefs.getBoolean(mAppId, false);
+    }
+
     private void bindRemoteRouting(VHHeader holder) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         boolean wgEnabled = prefs.getBoolean("wg_enabled", false)
@@ -500,17 +448,11 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         holder.mRowAppRoute.setOnClickListener(v -> showRouteSheet());
     }
 
-    /**
-     * Shows the protection-state bottom sheet, wiring the shared-UID
-     * No-Internet explanation into the sheet's own description view.
-     */
     private void showProtectionSheet(InternetBlocklist w) {
         BottomSheetDialog sheet = new BottomSheetDialog(mContext);
         View view = LayoutInflater.from(mContext).inflate(R.layout.bottom_sheet_app_state, null);
         sheet.setContentView(view);
 
-        // The internet block is keyed by UID, so it necessarily covers every
-        // package sharing that UID. Say so rather than letting it surprise.
         TextView noInternetDesc = view.findViewById(R.id.tvStateNoInternetDesc);
         String relatedApps = getRelatedApps();
         if (relatedApps == null) {
@@ -523,27 +465,33 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
 
         RadioGroup rgAppState = view.findViewById(R.id.rgAppState);
-        rgAppState.check(radioIdFor(currentState(w)));
-        rgAppState.setOnCheckedChangeListener((group, checkedId) -> {
-            AppProtectionState selected = stateForRadioId(checkedId);
 
-            // Dismiss first: applyState() may trigger a reload, and the sheet
-            // shouldn't linger on screen while that happens.
+        if (isBlockAllAdsActive()) {
+            rgAppState.check(R.id.rbStateBlockAds);
+        } else {
+            rgAppState.check(radioIdFor(currentState(w)));
+        }
+
+        rgAppState.setOnCheckedChangeListener((group, checkedId) -> {
             sheet.dismiss();
 
-            if (selected != null && selected != currentState(w)) {
-                applyState(selected, w);
-                notifyDataSetChanged();
+            if (checkedId == R.id.rbStateBlockAds) {
+                ad_block_prefs.edit().putBoolean(mAppId, true).apply();
+                applyState(AppProtectionState.PROTECTED, w);
+                Toast.makeText(mContext, "Ad Blocker activated for this app", Toast.LENGTH_SHORT).show();
+            } else {
+                ad_block_prefs.edit().putBoolean(mAppId, false).apply();
+                AppProtectionState selected = stateForRadioId(checkedId);
+                if (selected != null) {
+                    applyState(selected, w);
+                }
             }
+            notifyDataSetChanged();
         });
 
         showSheet(sheet);
     }
 
-    /**
-     * Shows the remote-routing bottom sheet, recomputing the current mode the
-     * same way {@link #bindRemoteRouting(VHHeader)} does.
-     */
     private void showRouteSheet() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         String mode = RemoteRoutingLogic.normalizeMode(
@@ -559,8 +507,6 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         rgAppRoute.setOnCheckedChangeListener((group, checkedId) -> {
             boolean wantsTunnel = (checkedId == R.id.rbRouteTunnel);
 
-            // Dismiss first: the reload triggered below shouldn't hold the
-            // sheet open while it runs.
             sheet.dismiss();
 
             if (wantsTunnel != RemoteRoutingLogic.routesThroughTunnel(mode, getRouteOverride(), true)) {
@@ -572,7 +518,6 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     ServiceSinkhole.reload("app routing changed", mContext, false);
                 });
 
-                // The row subtitle now depends on this value.
                 notifyDataSetChanged();
             }
         });
@@ -580,10 +525,6 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         showSheet(sheet);
     }
 
-    /**
-     * Only one sheet should be open at a time, and it must not outlive the
-     * RecyclerView that hosts the row that opened it.
-     */
     private void showSheet(BottomSheetDialog sheet) {
         if (mOpenSheet != null)
             mOpenSheet.dismiss();
@@ -641,10 +582,6 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
-    /**
-     * Comma-separated labels of the other packages sharing this app's UID, or
-     * {@code null} when the UID belongs to this package alone.
-     */
     @Nullable
     private String getRelatedApps() {
         PackageManager pm = mContext.getPackageManager();
@@ -681,9 +618,6 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         boolean protectBefore = BlockingMode.isTrackerProtectionEnabled(mContext, tracker_protect, mAppId);
 
         apply.edit().putBoolean(mAppId, change.apply).apply();
-        // Only a re-included app leaves the mode-managed exclusion set. Clearing
-        // it unconditionally would turn a Minimal-mode auto-exclusion into a
-        // permanent one as soon as the user toggled the app off and on again.
         if (change.apply)
             BlockingMode.clearAutoExcludedApp(mContext, mAppId);
 
@@ -692,16 +626,11 @@ public class TrackersListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         w.apply(mContext, mAppUid, change.internetBlocked);
 
-        // The internet blocklist is read live by the packet path, so a change
-        // that only blocks or unblocks Internet needs no reload. Which apps are
-        // in the tun, and which of them are filtered, are baked into the rules.
         boolean needsReload = change.apply != applyBefore
                 || (change.trackerProtect != null && change.trackerProtect != protectBefore);
         if (!needsReload)
             return;
 
-        // Move expensive operations off the main thread to prevent UI freezing
-        // Rule.clearCache() can block waiting for a lock held by Rule.getRules()
         AsyncTask.execute(() -> {
             Rule.clearCache(mContext);
             ServiceSinkhole.reload("app protection changed", mContext, false);

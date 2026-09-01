@@ -56,13 +56,18 @@ android {
         buildConfigField "String", "DEFAULT_DNS_IPV6_2", "\"2a07:e340::2\""
 
         externalNativeBuild {
-    cmake {
-        cppFlags ""
-        arguments "-DANDROID_PLATFORM=android-22",
-                "-DWGBRIDGE_LIB_DIR=${buildDir}/rustJniLibs"
-    }
-}
-
+            cmake {
+                cppFlags ""
+                                def cmakeArgs = ["-DANDROID_PLATFORM=android-22",
+                        "-DWGBRIDGE_LIB_DIR=${buildDir}/rustJniLibs"]
+                if (ccacheLauncher != null) {
+                    cmakeArgs += ["-DCMAKE_C_COMPILER_LAUNCHER=${ccacheLauncher}",
+                                  "-DCMAKE_CXX_COMPILER_LAUNCHER=${ccacheLauncher}"]
+                }
+                arguments(*cmakeArgs)
+                // https://developer.android.com/ndk/guides/cmake.html
+            }
+        }
 
         ndkVersion = wgbridgeNdkVersion
 
