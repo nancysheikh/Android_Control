@@ -1237,6 +1237,11 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
             else
                 Toast.makeText(this, R.string.msg_unavailable, Toast.LENGTH_SHORT).show();
             return true;
+        } else if (itemId == R.id.menu_ad_blocker) {
+            startActivity(new Intent(this, net.kollnig.missioncontrol.ActivityAdBlocker.class));
+            return true;
+        } else if (itemId == R.id.menu_settings) {
+            startActivity(new Intent(this, ActivitySettings.class));
         } else if (itemId == R.id.menu_settings) {
             startActivity(new Intent(this, ActivitySettings.class));
             return true;
