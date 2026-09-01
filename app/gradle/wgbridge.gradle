@@ -158,8 +158,12 @@ tasks.register('wgbridgeBuild') {
 
         // Tool installation must happen before Gradle runs. In particular,
         // F-Droid disables network access for the actual build phase.
-        def cargoNdkAvailable = file("${System.getProperty('user.home')}/.cargo/bin/cargo-ndk").canExecute() ||
-                env['PATH'].split(File.pathSeparator).any { file("$it/cargo-ndk").canExecute() }
+        def cargoNdkNames = System.getProperty('os.name').toLowerCase().contains('windows') ?
+                ['cargo-ndk.exe', 'cargo-ndk'] : ['cargo-ndk']
+        def cargoNdkAvailable = cargoNdkNames.any { name ->
+            file("${System.getProperty('user.home')}/.cargo/bin/${name}").canExecute() ||
+                    env['PATH'].split(File.pathSeparator).any { file("$it/${name}").canExecute() }
+        }
         if (!cargoNdkAvailable) {
             throw new GradleException("""
                 Could not find cargo-ndk ${wgbridgeCargoNdkVersion}. Run:

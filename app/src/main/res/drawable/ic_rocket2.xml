@@ -7,13 +7,13 @@
         android:fillColor="#4dd0e1"
         android:pathData="m54,10v5.51c0,3.72 -1.47,7.28 -4.1,9.9l-4.39,4.39 -7.07,7.07 -10.6,-10.61 -0.71,-0.71 7.07,-7.06 4.39,-4.39c2.62,-2.63 6.18,-4.1 9.9,-4.1z"/>
     <path
-        android:fillColor="#ff7043"
+        android:fillColor="#7E57C2"
         android:pathData="m45.51,29.8c2.74,2.73 2.74,7.16 0,9.9l-5.65,5.66 -4.95,-4.95 3.53,-3.54z"/>
     <path
-        android:fillColor="#ff7043"
+        android:fillColor="#7E57C2"
         android:pathData="m38.44,36.87 l-3.53,3.54 -2.12,2.12 -11.32,-11.32 2.12,-2.12 3.54,-3.54 0.71,0.71z"/>
     <path
-        android:fillColor="#ff7043"
+        android:fillColor="#7E57C2"
         android:pathData="m34.2,18.49 l-7.07,7.06 -3.54,3.54 -4.95,-4.95 5.66,-5.65c2.74,-2.74 7.17,-2.74 9.9,0z"/>
     <path
         android:fillColor="#012e52"

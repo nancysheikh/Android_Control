@@ -1,0 +1,134 @@
+From 7ff5e99dc4971e56eb86674bf8800b420f0db07c Mon Sep 17 00:00:00 2001
+From: TrackerControl theme work <you@example.com>
+Date: Sun, 30 Aug 2026 09:14:33 +0000
+Subject: [PATCH] Rebrand color palette: red/orange -> purple
+
+- values/colors.xml: colorPrimary/colorPrimaryDark/colorPrimaryLight
+  changed from red (#B71C1C family) to purple (#7E57C2 family)
+- values-night/colors.xml: colorPrimary/colorPrimaryDark changed from
+  orange (#fb8c00/#c25e00) to purple (#9575CD/#5E35B1)
+- colorAccent intentionally left teal (#004D40 / #4db6ac) in both
+  themes to preserve allowed/blocked and link contrast
+- ic_email, ic_advertising, ic_rocket2, ic_megaphone: hardcoded
+  #ff7043 vector path color swapped to #7E57C2 (these icons don't
+  read from colorAccent/colorPrimary, so theme-level changes alone
+  didn't reach them)
+- bg_insights_hero.xml gradient intentionally left as-is (red-toward-
+  purple danger-style hero card)
+
+Does NOT include .gitattributes / CRLF normalization -- that was
+found to correlate with a Windows CMake file-lock build failure on
+this machine and is kept out of this patch on purpose.
+---
+ app/src/main/res/drawable/ic_advertising.xml | 2 +-
+ app/src/main/res/drawable/ic_email.xml       | 2 +-
+ app/src/main/res/drawable/ic_megaphone.xml   | 4 ++--
+ app/src/main/res/drawable/ic_rocket2.xml     | 6 +++---
+ app/src/main/res/values-night/colors.xml     | 4 ++--
+ app/src/main/res/values/colors.xml           | 8 ++++----
+ 6 files changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/app/src/main/res/drawable/ic_advertising.xml b/app/src/main/res/drawable/ic_advertising.xml
+index 75bbf379..00138739 100644
+--- a/app/src/main/res/drawable/ic_advertising.xml
++++ b/app/src/main/res/drawable/ic_advertising.xml
+@@ -4,7 +4,7 @@
+         android:viewportHeight="64"
+         android:viewportWidth="64">
+     <path
+-        android:fillColor="#ff7043"
++        android:fillColor="#7E57C2"
+         android:pathData="m54,38v4c0,2.21 -1.79,4 -4,4h-14,-8 -14c-2.21,0 -4,-1.79 -4,-4v-4z"/>
+     <path
+         android:fillColor="#e0f7fa"
+diff --git a/app/src/main/res/drawable/ic_email.xml b/app/src/main/res/drawable/ic_email.xml
+index cd7736ed..0dfe0f07 100644
+--- a/app/src/main/res/drawable/ic_email.xml
++++ b/app/src/main/res/drawable/ic_email.xml
+@@ -7,7 +7,7 @@
+         android:fillColor="#e0f7fa"
+         android:pathData="m51,16v26h-38v-26c0,-1.1 0.9,-2 2,-2h34c1.1,0 2,0.9 2,2zM42,34v-12c0,-0.55 -0.45,-1 -1,-1h-18c-0.55,0 -1,0.45 -1,1v12c0,0.55 0.45,1 1,1h18c0.55,0 1,-0.45 1,-1z"/>
+     <path
+-        android:fillColor="#ff7043"
++        android:fillColor="#7E57C2"
+         android:pathData="m54,42v6c0,1.1 -0.9,2 -2,2h-40c-1.1,0 -2,-0.9 -2,-2v-6h3,38z"/>
+     <path
+         android:fillColor="#4dd0e1"
+diff --git a/app/src/main/res/drawable/ic_megaphone.xml b/app/src/main/res/drawable/ic_megaphone.xml
+index 603824d4..ddc2787d 100644
+--- a/app/src/main/res/drawable/ic_megaphone.xml
++++ b/app/src/main/res/drawable/ic_megaphone.xml
+@@ -4,7 +4,7 @@
+         android:viewportHeight="64"
+         android:viewportWidth="64">
+     <path
+-        android:fillColor="#ff7043"
++        android:fillColor="#7E57C2"
+         android:pathData="m52.83,25.17c0.72,0.73 1.17,1.73 1.17,2.83 0,2.21 -1.79,4 -4,4h-3v-8h3c1.1,0 2.1,0.45 2.83,1.17z"/>
+     <path
+         android:fillColor="#4dd0e1"
+@@ -13,7 +13,7 @@
+         android:fillColor="#4dd0e1"
+         android:pathData="m23.65,45.69c0.1,0.33 0.15,0.67 0.15,1 0,1.77 -1.43,3.31 -3.32,3.31 -1.47,0 -2.77,-0.97 -3.18,-2.38l-3.42,-11.63c0.04,0.01 0.08,0.01 0.12,0.01h6.62z"/>
+     <path
+-        android:fillColor="#ff7043"
++        android:fillColor="#7E57C2"
+         android:pathData="m23,20v16h-2.38,-6.62c-0.04,0 -0.08,0 -0.12,-0.01 -2.15,-0.06 -3.88,-1.82 -3.88,-3.99v-8c0,-2.21 1.79,-4 4,-4z"/>
+     <path
+         android:fillColor="#012e52"
+diff --git a/app/src/main/res/drawable/ic_rocket2.xml b/app/src/main/res/drawable/ic_rocket2.xml
+index 3b6ac901..20af0804 100644
+--- a/app/src/main/res/drawable/ic_rocket2.xml
++++ b/app/src/main/res/drawable/ic_rocket2.xml
+@@ -7,13 +7,13 @@
+         android:fillColor="#4dd0e1"
+         android:pathData="m54,10v5.51c0,3.72 -1.47,7.28 -4.1,9.9l-4.39,4.39 -7.07,7.07 -10.6,-10.61 -0.71,-0.71 7.07,-7.06 4.39,-4.39c2.62,-2.63 6.18,-4.1 9.9,-4.1z"/>
+     <path
+-        android:fillColor="#ff7043"
++        android:fillColor="#7E57C2"
+         android:pathData="m45.51,29.8c2.74,2.73 2.74,7.16 0,9.9l-5.65,5.66 -4.95,-4.95 3.53,-3.54z"/>
+     <path
+-        android:fillColor="#ff7043"
++        android:fillColor="#7E57C2"
+         android:pathData="m38.44,36.87 l-3.53,3.54 -2.12,2.12 -11.32,-11.32 2.12,-2.12 3.54,-3.54 0.71,0.71z"/>
+     <path
+-        android:fillColor="#ff7043"
++        android:fillColor="#7E57C2"
+         android:pathData="m34.2,18.49 l-7.07,7.06 -3.54,3.54 -4.95,-4.95 5.66,-5.65c2.74,-2.74 7.17,-2.74 9.9,0z"/>
+     <path
+         android:fillColor="#012e52"
+diff --git a/app/src/main/res/values-night/colors.xml b/app/src/main/res/values-night/colors.xml
+index 2694e715..ea96c76e 100644
+--- a/app/src/main/res/values-night/colors.xml
++++ b/app/src/main/res/values-night/colors.xml
+@@ -1,7 +1,7 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-    <color name="colorPrimary">#fb8c00</color>
+-    <color name="colorPrimaryDark">#c25e00</color>
++    <color name="colorPrimary">#9575CD</color>
++    <color name="colorPrimaryDark">#5E35B1</color>
+     <color name="colorAccent">#4db6ac</color>
+
+     <!-- Brighter than colorAccent for low-contrast text links on the dark
+diff --git a/app/src/main/res/values/colors.xml b/app/src/main/res/values/colors.xml
+index 25c92ec0..ce5cd75d 100644
+--- a/app/src/main/res/values/colors.xml
++++ b/app/src/main/res/values/colors.xml
+@@ -1,10 +1,10 @@
+ <resources>
+-    <color name="colorTrackerControl">#B71C1C</color>
++    <color name="colorTrackerControl">#7E57C2</color>
+     <color name="black">#000000</color>
+
+-    <color name="colorPrimary">#B71C1C</color>
+-    <color name="colorPrimaryDark">#7f0000</color>
+-    <color name="colorPrimaryLight">#FFCDD2</color>
++    <color name="colorPrimary">#7E57C2</color>
++    <color name="colorPrimaryDark">#5E35B1</color>
++    <color name="colorPrimaryLight">#B39DDB</color>
+     <color name="colorAccent">#004D40</color>
+
+     <color name="colorRedPrimary">@color/colorPrimary</color> <!-- or: F44336 -->
+--
+2.43.0

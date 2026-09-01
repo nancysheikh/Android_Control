@@ -7,7 +7,7 @@
         android:fillColor="#e0f7fa"
         android:pathData="m51,16v26h-38v-26c0,-1.1 0.9,-2 2,-2h34c1.1,0 2,0.9 2,2zM42,34v-12c0,-0.55 -0.45,-1 -1,-1h-18c-0.55,0 -1,0.45 -1,1v12c0,0.55 0.45,1 1,1h18c0.55,0 1,-0.45 1,-1z"/>
     <path
-        android:fillColor="#ff7043"
+        android:fillColor="#7E57C2"
         android:pathData="m54,42v6c0,1.1 -0.9,2 -2,2h-40c-1.1,0 -2,-0.9 -2,-2v-6h3,38z"/>
     <path
         android:fillColor="#4dd0e1"
